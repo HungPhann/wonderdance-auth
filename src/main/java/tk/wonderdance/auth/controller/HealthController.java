@@ -7,9 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-@RequestMapping("/auth")
-public class TestController {
-    @RequestMapping(value = "test", method = RequestMethod.GET)
+public class HealthController {
+    @RequestMapping(value = "/health", method = RequestMethod.GET)
     public ResponseEntity<?> auth() {
         return ResponseEntity.ok("OK");
     }
