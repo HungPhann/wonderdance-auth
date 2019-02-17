@@ -1,10 +1,10 @@
-package tk.wonderdance.auth.payload.user.change_password;
+package tk.wonderdance.auth.payload.user.activate;
 
-public class ChangePasswordSuccessResponse {
+public class ActivateUserResponse {
 
     private boolean success;
 
-    public ChangePasswordSuccessResponse(boolean success) {
+    public ActivateUserResponse(boolean success) {
         this.success = success;
     }
 

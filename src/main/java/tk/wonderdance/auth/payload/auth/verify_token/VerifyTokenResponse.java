@@ -2,12 +2,12 @@ package tk.wonderdance.auth.payload.auth.verify_token;
 
 import io.jsonwebtoken.Claims;
 
-public class VerifyTokenSuccessResponse {
+public class VerifyTokenResponse {
 
     private boolean success;
     private Claims payload;
 
-    public VerifyTokenSuccessResponse(boolean success, Claims payload) {
+    public VerifyTokenResponse(boolean success, Claims payload) {
         this.success = success;
         this.payload = payload;
     }

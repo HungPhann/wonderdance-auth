@@ -1,11 +1,11 @@
 package tk.wonderdance.auth.payload.user.reset_password;
 
-public class ResetPasswordSuccessResponse {
+public class ResetPasswordResponse {
 
     private boolean success;
     private String password;
 
-    public ResetPasswordSuccessResponse(boolean success, String password) {
+    public ResetPasswordResponse(boolean success, String password) {
         this.success = success;
         this.password = password;
     }

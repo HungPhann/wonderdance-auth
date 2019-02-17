@@ -1,11 +1,11 @@
 package tk.wonderdance.auth.payload.auth.authenticate;
 
-public class AuthenticateSuccessResponse {
+public class AuthenticateResponse {
 
     private boolean success;
     private String token;
 
-    public AuthenticateSuccessResponse(boolean success, String token) {
+    public AuthenticateResponse(boolean success, String token) {
         this.success = success;
         this.token = token;
     }

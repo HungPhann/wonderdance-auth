@@ -7,18 +7,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import tk.wonderdance.auth.exception.exception.ForbiddenException;
+import tk.wonderdance.auth.exception.exception.ResourceConflictException;
+import tk.wonderdance.auth.exception.exception.UnauthorizedException;
+import tk.wonderdance.auth.exception.exception.UserNotFoundException;
 import tk.wonderdance.auth.helper.StringGenerator;
 import tk.wonderdance.auth.model.User;
-import tk.wonderdance.auth.payload.user.activate.ActivateUserFailResponse;
-import tk.wonderdance.auth.payload.user.activate.ActivateUserSuccessResponse;
-import tk.wonderdance.auth.payload.user.activation_code.GetActivationCodeFailResponse;
-import tk.wonderdance.auth.payload.user.activation_code.GetActivationCodeSuccessResponse;
-import tk.wonderdance.auth.payload.user.change_password.ChangePasswordFailResponse;
-import tk.wonderdance.auth.payload.user.change_password.ChangePasswordSuccessResponse;
-import tk.wonderdance.auth.payload.user.create.CreateUserFailResponse;
-import tk.wonderdance.auth.payload.user.create.CreateUserSuccessResponse;
-import tk.wonderdance.auth.payload.user.reset_password.ResetPasswordFailResponse;
-import tk.wonderdance.auth.payload.user.reset_password.ResetPasswordSuccessResponse;
+import tk.wonderdance.auth.payload.user.activate.ActivateUserResponse;
+import tk.wonderdance.auth.payload.user.activation_code.GetActivationCodeResponse;
+import tk.wonderdance.auth.payload.user.change_password.ChangePasswordResponse;
+import tk.wonderdance.auth.payload.user.create.CreateUserResponse;
+import tk.wonderdance.auth.payload.user.reset_password.ResetPasswordResponse;
 import tk.wonderdance.auth.repository.UserRepository;
 
 import java.util.NoSuchElementException;
@@ -36,14 +36,11 @@ public class UserController {
 
     @RequestMapping(value = "create", method = RequestMethod.POST)
     public ResponseEntity<?> createUser(@RequestParam("email") String email,
-                                        @RequestParam("password") String password){
+                                        @RequestParam("password") String password) throws MethodArgumentTypeMismatchException, ResourceConflictException {
 
         boolean userExisted = userRepository.existsByEmail(email);
         if (userExisted){
-            boolean success = false;
-            String message = "Email exists";
-            CreateUserFailResponse createUserFailResponse = new CreateUserFailResponse(success, message);
-            return ResponseEntity.ok(createUserFailResponse);
+            throw new ResourceConflictException("User existed with email=" + email);
         }
         else {
             String hashPassword = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -52,15 +49,15 @@ public class UserController {
             userRepository.save(user);
             boolean success = true;
             long userID = user.getId();
-            CreateUserSuccessResponse createUserSuccessResponse = new CreateUserSuccessResponse(success, userID, activateCode);
-            return ResponseEntity.ok(createUserSuccessResponse);
+            CreateUserResponse createUserResponse = new CreateUserResponse(success, userID, activateCode);
+            return ResponseEntity.ok(createUserResponse);
         }
     }
 
 
     @RequestMapping(value = "activate", method = RequestMethod.POST)
     public ResponseEntity<?> activateUser(@RequestParam("email") String email,
-                                          @RequestParam("activate_code") String activate_code){
+                                          @RequestParam("activate_code") String activate_code) throws MethodArgumentTypeMismatchException, UserNotFoundException, ForbiddenException{
 
         Optional<User> userQuery = userRepository.findUserByEmail(email);
 
@@ -72,44 +69,32 @@ public class UserController {
                 userRepository.save(user);
 
                 boolean success = true;
-                ActivateUserSuccessResponse activateUserSuccessResponse = new ActivateUserSuccessResponse(success);
-                return ResponseEntity.ok(activateUserSuccessResponse);
+                ActivateUserResponse activateUserResponse = new ActivateUserResponse(success);
+                return ResponseEntity.ok(activateUserResponse);
 
             } else {
-                boolean success = false;
-                int error_code = 2;
-                String message = "Email and activation code do not match";
-                ActivateUserFailResponse activateUserFailResponse = new ActivateUserFailResponse(success,error_code,message);
-                return ResponseEntity.ok(activateUserFailResponse);
+                throw new ForbiddenException("Fail to activate User with email=" + email + " and activate_code=" + activate_code);
             }
         }
         catch (NoSuchElementException e){
-            boolean success = false;
-            int error_code = 1;
-            String message = "Email does not exist";
-            ActivateUserFailResponse activateUserFailResponse = new ActivateUserFailResponse(success,error_code,message);
-            return ResponseEntity.ok(activateUserFailResponse);
+            throw new UserNotFoundException("Cannot find User with email=" + email);
         }
     }
 
 
     @RequestMapping(value = "activate", method = RequestMethod.GET)
-    public ResponseEntity<?> getActivationCode(@RequestParam("email") String email){
+    public ResponseEntity<?> getActivationCode(@RequestParam("email") String email) throws MethodArgumentTypeMismatchException, UserNotFoundException{
         Optional<User> userQuery = userRepository.findUserByEmail(email);
 
         try {
             User user= userQuery.get();
             boolean success = true;
             String activationCode = user.getActivate_code();
-            GetActivationCodeSuccessResponse getActivationCodeSuccessResponse = new GetActivationCodeSuccessResponse(success, activationCode);
-            return ResponseEntity.ok(getActivationCodeSuccessResponse);
+            GetActivationCodeResponse getActivationCodeResponse = new GetActivationCodeResponse(success, activationCode);
+            return ResponseEntity.ok(getActivationCodeResponse);
         }
         catch (NoSuchElementException e){
-            boolean success = false;
-            int error_code = 1;
-            String message = "Email does not exist";
-            GetActivationCodeFailResponse getActivationCodeFailResponse = new GetActivationCodeFailResponse(success, error_code, message);
-            return ResponseEntity.ok(getActivationCodeFailResponse);
+            throw new UserNotFoundException("Cannot find User with email=" + email);
         }
     }
 
@@ -117,7 +102,7 @@ public class UserController {
     @RequestMapping(value = "password/change", method = RequestMethod.POST)
     public ResponseEntity<?> changePassword(@RequestParam("user_id") long userID,
                                             @RequestParam("old_password") String oldPassword,
-                                            @RequestParam("new_password") String newPassword){
+                                            @RequestParam("new_password") String newPassword) throws MethodArgumentTypeMismatchException, UserNotFoundException, UnauthorizedException{
         Optional<User> userQuery = userRepository.findUserById(userID);
 
         try {
@@ -129,30 +114,23 @@ public class UserController {
                 userRepository.save(user);
 
                 boolean success = true;
-                ChangePasswordSuccessResponse changePasswordSuccessResponse = new ChangePasswordSuccessResponse(success);
-                return ResponseEntity.ok(changePasswordSuccessResponse);
+                ChangePasswordResponse changePasswordResponse = new ChangePasswordResponse(success);
+                return ResponseEntity.ok(changePasswordResponse);
             }
             else {
-                boolean success = false;
-                int error_code = 2;
-                String message = "Old password is incorrect";
-                ChangePasswordFailResponse changePasswordFailResponse = new ChangePasswordFailResponse(success, error_code, message);
-                return ResponseEntity.ok(changePasswordFailResponse);
+                throw new UnauthorizedException("Fail to change password for User with user_id=" + userID);
             }
 
         }
         catch (NoSuchElementException e){
-            boolean success = false;
-            int error_code = 1;
-            String message = "User ID does not exist";
-            ChangePasswordFailResponse changePasswordFailResponse = new ChangePasswordFailResponse(success, error_code, message);
-            return ResponseEntity.ok(changePasswordFailResponse);
+            throw new UserNotFoundException("Cannot find User with user_id=" + userID);
+
         }
     }
 
 
     @RequestMapping(value = "password/reset", method = RequestMethod.POST)
-    public ResponseEntity<?> resetPassword(@RequestParam("email") String email){
+    public ResponseEntity<?> resetPassword(@RequestParam("email") String email) throws MethodArgumentTypeMismatchException, UserNotFoundException{
         Optional<User> userQuery = userRepository.findUserByEmail(email);
 
         try {
@@ -163,15 +141,11 @@ public class UserController {
             userRepository.save(user);
 
             boolean success = true;
-            ResetPasswordSuccessResponse resetPasswordSuccessResponse = new ResetPasswordSuccessResponse(success, newPassword);
-            return ResponseEntity.ok(resetPasswordSuccessResponse);
+            ResetPasswordResponse resetPasswordResponse = new ResetPasswordResponse(success, newPassword);
+            return ResponseEntity.ok(resetPasswordResponse);
         }
         catch (NoSuchElementException e){
-            boolean success = false;
-            int error_code = 1;
-            String message = "Email does not exist";
-            ResetPasswordFailResponse resetPasswordFailResponse = new ResetPasswordFailResponse(success, error_code, message);
-            return ResponseEntity.ok(resetPasswordFailResponse);
+            throw new UserNotFoundException("Cannot find User with email=" + email);
         }
     }
 
