@@ -12,6 +12,7 @@ import tk.wonderdance.auth.exception.exception.UnauthorizedException;
 import tk.wonderdance.auth.exception.exception.UserNotFoundException;
 import tk.wonderdance.auth.helper.StringGenerator;
 import tk.wonderdance.auth.model.User;
+import tk.wonderdance.auth.payload.user.activate.ActivateUserRequest;
 import tk.wonderdance.auth.payload.user.activate.ActivateUserResponse;
 import tk.wonderdance.auth.payload.user.activation_code.GetActivationCodeResponse;
 import tk.wonderdance.auth.payload.user.change_password.ChangePasswordResponse;
@@ -56,14 +57,14 @@ public class UserController {
 
     @RequestMapping(value = "{email}/activate", method = RequestMethod.POST)
     public ResponseEntity<?> activateUser(@PathVariable("email") String email,
-                                          @RequestParam("activate_code") String activate_code) throws MethodArgumentTypeMismatchException, UserNotFoundException, ForbiddenException{
+                                          @Valid @RequestBody ActivateUserRequest requestBody) throws MethodArgumentTypeMismatchException, UserNotFoundException, ForbiddenException{
 
         Optional<User> userQuery = userRepository.findUserByEmail(email);
 
         try {
             User user= userQuery.get();
 
-            if (activate_code.equals(user.getActivate_code())) {
+            if (requestBody.getActivate_code().equals(user.getActivate_code())) {
                 user.setActivate(true);
                 userRepository.save(user);
 
@@ -72,7 +73,7 @@ public class UserController {
                 return ResponseEntity.ok(activateUserResponse);
 
             } else {
-                throw new ForbiddenException("Fail to activate User with email=" + email + " and activate_code=" + activate_code);
+                throw new ForbiddenException("Fail to activate User with email=" + email + " and activate_code=" + requestBody.getActivate_code());
             }
         }
         catch (NoSuchElementException e){

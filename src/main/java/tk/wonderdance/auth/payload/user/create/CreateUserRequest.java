@@ -17,6 +17,9 @@ public class CreateUserRequest {
         this.password = password;
     }
 
+    public CreateUserRequest() {
+    }
+
     public String getEmail() {
         return email;
     }
