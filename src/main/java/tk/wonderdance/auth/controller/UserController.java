@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,7 +35,7 @@ public class UserController {
     @Autowired
     StringGenerator stringGenerator;
 
-    @RequestMapping(value = "create", method = RequestMethod.POST)
+    @RequestMapping(value = "", method = RequestMethod.POST)
     public ResponseEntity<?> createUser(@RequestParam("email") String email,
                                         @RequestParam("password") String password) throws MethodArgumentTypeMismatchException, ResourceConflictException {
 
@@ -55,8 +56,8 @@ public class UserController {
     }
 
 
-    @RequestMapping(value = "activate", method = RequestMethod.POST)
-    public ResponseEntity<?> activateUser(@RequestParam("email") String email,
+    @RequestMapping(value = "{email}/activate", method = RequestMethod.POST)
+    public ResponseEntity<?> activateUser(@PathVariable("email") String email,
                                           @RequestParam("activate_code") String activate_code) throws MethodArgumentTypeMismatchException, UserNotFoundException, ForbiddenException{
 
         Optional<User> userQuery = userRepository.findUserByEmail(email);
@@ -82,8 +83,8 @@ public class UserController {
     }
 
 
-    @RequestMapping(value = "activate", method = RequestMethod.GET)
-    public ResponseEntity<?> getActivationCode(@RequestParam("email") String email) throws MethodArgumentTypeMismatchException, UserNotFoundException{
+    @RequestMapping(value = "{email}/activate", method = RequestMethod.GET)
+    public ResponseEntity<?> getActivationCode(@PathVariable("email") String email) throws MethodArgumentTypeMismatchException, UserNotFoundException{
         Optional<User> userQuery = userRepository.findUserByEmail(email);
 
         try {
@@ -99,8 +100,8 @@ public class UserController {
     }
 
 
-    @RequestMapping(value = "password/change", method = RequestMethod.POST)
-    public ResponseEntity<?> changePassword(@RequestParam("user_id") long userID,
+    @RequestMapping(value = "{user_id}/password", method = RequestMethod.PUT)
+    public ResponseEntity<?> changePassword(@PathVariable("user_id") long userID,
                                             @RequestParam("old_password") String oldPassword,
                                             @RequestParam("new_password") String newPassword) throws MethodArgumentTypeMismatchException, UserNotFoundException, UnauthorizedException{
         Optional<User> userQuery = userRepository.findUserById(userID);
@@ -129,8 +130,8 @@ public class UserController {
     }
 
 
-    @RequestMapping(value = "password/reset", method = RequestMethod.POST)
-    public ResponseEntity<?> resetPassword(@RequestParam("email") String email) throws MethodArgumentTypeMismatchException, UserNotFoundException{
+    @RequestMapping(value = "{email}/password/reset", method = RequestMethod.POST)
+    public ResponseEntity<?> resetPassword(@PathVariable("email") String email) throws MethodArgumentTypeMismatchException, UserNotFoundException{
         Optional<User> userQuery = userRepository.findUserByEmail(email);
 
         try {
