@@ -1,6 +1,7 @@
 package tk.wonderdance.auth.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,7 @@ import tk.wonderdance.auth.model.User;
 import tk.wonderdance.auth.payload.user.activate.ActivateUserRequest;
 import tk.wonderdance.auth.payload.user.activate.ActivateUserResponse;
 import tk.wonderdance.auth.payload.user.activation_code.GetActivationCodeResponse;
+import tk.wonderdance.auth.payload.user.change_password.ChangePasswordRequest;
 import tk.wonderdance.auth.payload.user.change_password.ChangePasswordResponse;
 import tk.wonderdance.auth.payload.user.create.CreateUserRequest;
 import tk.wonderdance.auth.payload.user.create.CreateUserResponse;
@@ -68,9 +70,7 @@ public class UserController {
                 user.setActivate(true);
                 userRepository.save(user);
 
-                boolean success = true;
-                ActivateUserResponse activateUserResponse = new ActivateUserResponse(success);
-                return ResponseEntity.ok(activateUserResponse);
+                return new ResponseEntity<>(HttpStatus.OK);
 
             } else {
                 throw new ForbiddenException("Fail to activate User with email=" + email + " and activate_code=" + requestBody.getActivate_code());
@@ -88,9 +88,8 @@ public class UserController {
 
         try {
             User user= userQuery.get();
-            boolean success = true;
             String activationCode = user.getActivate_code();
-            GetActivationCodeResponse getActivationCodeResponse = new GetActivationCodeResponse(success, activationCode);
+            GetActivationCodeResponse getActivationCodeResponse = new GetActivationCodeResponse(activationCode);
             return ResponseEntity.ok(getActivationCodeResponse);
         }
         catch (NoSuchElementException e){
@@ -101,21 +100,18 @@ public class UserController {
 
     @RequestMapping(value = "{user_id}/password", method = RequestMethod.PUT)
     public ResponseEntity<?> changePassword(@PathVariable("user_id") long userID,
-                                            @RequestParam("old_password") String oldPassword,
-                                            @RequestParam("new_password") String newPassword) throws MethodArgumentTypeMismatchException, UserNotFoundException, UnauthorizedException{
+                                            @Valid @RequestBody ChangePasswordRequest requestBody) throws MethodArgumentTypeMismatchException, UserNotFoundException, UnauthorizedException{
         Optional<User> userQuery = userRepository.findUserById(userID);
 
         try {
             User user= userQuery.get();
 
-            if(BCrypt.checkpw(oldPassword, user.getPassword())){
-                String hashNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+            if(BCrypt.checkpw(requestBody.getOld_password(), user.getPassword())){
+                String hashNewPassword = BCrypt.hashpw(requestBody.getNew_password(), BCrypt.gensalt());
                 user.setPassword(hashNewPassword);
                 userRepository.save(user);
 
-                boolean success = true;
-                ChangePasswordResponse changePasswordResponse = new ChangePasswordResponse(success);
-                return ResponseEntity.ok(changePasswordResponse);
+                return new ResponseEntity<>(HttpStatus.OK);
             }
             else {
                 throw new UnauthorizedException("Fail to change password for User with user_id=" + userID);
