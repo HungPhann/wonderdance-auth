@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import tk.wonderdance.auth.exception.exception.ForbiddenException;
 import tk.wonderdance.auth.exception.exception.ResourceConflictException;
@@ -18,10 +15,13 @@ import tk.wonderdance.auth.model.User;
 import tk.wonderdance.auth.payload.user.activate.ActivateUserResponse;
 import tk.wonderdance.auth.payload.user.activation_code.GetActivationCodeResponse;
 import tk.wonderdance.auth.payload.user.change_password.ChangePasswordResponse;
+import tk.wonderdance.auth.payload.user.create.CreateUserRequest;
 import tk.wonderdance.auth.payload.user.create.CreateUserResponse;
 import tk.wonderdance.auth.payload.user.reset_password.ResetPasswordResponse;
 import tk.wonderdance.auth.repository.UserRepository;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -36,21 +36,19 @@ public class UserController {
     StringGenerator stringGenerator;
 
     @RequestMapping(value = "", method = RequestMethod.POST)
-    public ResponseEntity<?> createUser(@RequestParam("email") String email,
-                                        @RequestParam("password") String password) throws MethodArgumentTypeMismatchException, ResourceConflictException {
+    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest requestBody) throws MethodArgumentTypeMismatchException, ResourceConflictException {
 
-        boolean userExisted = userRepository.existsByEmail(email);
+        boolean userExisted = userRepository.existsByEmail(requestBody.getEmail());
         if (userExisted){
-            throw new ResourceConflictException("User existed with email=" + email);
+            throw new ResourceConflictException("User existed with email=" + requestBody.getEmail());
         }
         else {
-            String hashPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            String hashPassword = BCrypt.hashpw(requestBody.getPassword(), BCrypt.gensalt());
             String activateCode = stringGenerator.generateString(16);
-            User user = new User(email, hashPassword, activateCode);
+            User user = new User(requestBody.getEmail(), hashPassword, activateCode);
             userRepository.save(user);
-            boolean success = true;
             long userID = user.getId();
-            CreateUserResponse createUserResponse = new CreateUserResponse(success, userID, activateCode);
+            CreateUserResponse createUserResponse = new CreateUserResponse(userID, activateCode);
             return ResponseEntity.ok(createUserResponse);
         }
     }

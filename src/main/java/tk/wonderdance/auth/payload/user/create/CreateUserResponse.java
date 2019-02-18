@@ -2,22 +2,12 @@ package tk.wonderdance.auth.payload.user.create;
 
 public class CreateUserResponse {
 
-    private boolean success;
     private long user_id;
     private String activate_code;
 
-    public CreateUserResponse(boolean success, long user_id, String activate_code) {
-        this.success = success;
+    public CreateUserResponse(long user_id, String activate_code) {
         this.user_id = user_id;
         this.activate_code = activate_code;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
     }
 
     public long getUser_id() {

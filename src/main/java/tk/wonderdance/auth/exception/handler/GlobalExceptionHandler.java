@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import tk.wonderdance.auth.exception.exception.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -44,6 +45,5 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceConflictException.class)
     public void handleResourceConflictException(HttpServletRequest request, ResourceConflictException e){
         logger.info("[ResourceConflictException] " + e.getMessage() + " at: " + request.getRequestURL());
-
     }
 }
