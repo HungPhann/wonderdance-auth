@@ -65,8 +65,8 @@ public class AuthController {
     public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String token) throws UnauthorizedException {
         try {
             Claims payload = jwtTokenProvider.verifyAccessToken(token);
-            boolean success = true;
-            VerifyTokenResponse verifyTokenResponse = new VerifyTokenResponse(success, payload);
+
+            VerifyTokenResponse verifyTokenResponse = new VerifyTokenResponse(payload);
             return ResponseEntity.ok(verifyTokenResponse);
         }
         catch (Exception e){
