@@ -136,8 +136,7 @@ public class UserController {
             user.setPassword(hashNewPassword);
             userRepository.save(user);
 
-            boolean success = true;
-            ResetPasswordResponse resetPasswordResponse = new ResetPasswordResponse(success, newPassword);
+            ResetPasswordResponse resetPasswordResponse = new ResetPasswordResponse(newPassword);
             return ResponseEntity.ok(resetPasswordResponse);
         }
         catch (NoSuchElementException e){
