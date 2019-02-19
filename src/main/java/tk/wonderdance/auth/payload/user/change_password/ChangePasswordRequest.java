@@ -1,13 +1,16 @@
 package tk.wonderdance.auth.payload.user.change_password;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class ChangePasswordRequest {
 
     @NotNull
+    @NotBlank
     private String old_password;
 
     @NotNull
+    @NotBlank
     private String new_password;
 
     public ChangePasswordRequest(@NotNull String old_password, @NotNull String new_password) {

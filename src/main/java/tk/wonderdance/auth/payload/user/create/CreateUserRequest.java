@@ -1,15 +1,18 @@
 package tk.wonderdance.auth.payload.user.create;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class CreateUserRequest {
 
     @NotNull
+    @NotBlank
     @Email
     private String email;
 
     @NotNull
+    @NotBlank
     private String password;
 
     public CreateUserRequest(String email, String password) {

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import tk.wonderdance.auth.exception.exception.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
